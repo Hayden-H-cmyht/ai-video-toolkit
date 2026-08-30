@@ -129,9 +129,12 @@ const BrowserEngine = {
       if (this._progressCb) this._progressCb(Math.max(0, Math.min(1, progress || 0)));
     });
     const CORE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+    const FFBASE = "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd";
     const coreURL = await toBlobURL(`${CORE}/ffmpeg-core.js`, "text/javascript");
     const wasmURL = await toBlobURL(`${CORE}/ffmpeg-core.wasm`, "application/wasm");
-    await ff.load({ coreURL, wasmURL });
+    // classWorkerURL 走 blob: 跨域源不能直接 new Worker(CDN 脚本)
+    const classWorkerURL = await toBlobURL(`${FFBASE}/814.ffmpeg.js`, "text/javascript");
+    await ff.load({ coreURL, wasmURL, classWorkerURL });
     this._ff = ff;
     cb.log?.("[浏览器] ffmpeg.wasm 就绪");
     return ff;
