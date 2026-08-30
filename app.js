@@ -121,7 +121,7 @@ const BrowserEngine = {
 
   async _ffmpeg(cb) {
     if (this._ff) return this._ff;
-    cb.log?.("[浏览器] 加载 ffmpeg.wasm（首次约 30MB，来自 jsDelivr CDN）…");
+    cb.log?.("[浏览器] 加载 ffmpeg.wasm（首次约 30MB，来自 unpkg CDN）…");
     await loadScript("https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js");
     const { FFmpeg } = window.FFmpegWASM;
     const ff = new FFmpeg();
@@ -130,7 +130,7 @@ const BrowserEngine = {
     });
     // 官方 UMD worker 与 CDN 场景不兼容(跨域 Worker / module worker 无 importScripts),
     // 用自带的同源 ESM worker(ffmpeg-worker.mjs, 由 @ffmpeg/ffmpeg 的 esm 打包) + ESM core
-    const CORE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
+    const CORE = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
     const coreURL = await toBlobURL(`${CORE}/ffmpeg-core.js`, "text/javascript");
     const wasmURL = await toBlobURL(`${CORE}/ffmpeg-core.wasm`, "application/wasm");
     const classWorkerURL = new URL("./ffmpeg-worker.mjs", location.href).href;
