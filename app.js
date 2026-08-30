@@ -162,26 +162,18 @@ const BrowserEngine = {
   async _getASR(size, cb) {
     if (this._asr[size]) return this._asr[size];
     const T = await this._transformers();
-    T.env.allowLocalModels = false;
-    T.env.remoteHost = "https://hf-mirror.com";
+    // 模型随站点同源打包在 ./models/ (无 CORS 问题); 远程模型源对浏览器跨域不可用
+    T.env.allowLocalModels = true;
+    T.env.allowRemoteModels = false;
+    T.env.localModelPath = new URL("./models/", location.href).href;
     const model = `Xenova/whisper-${size}`;
     const prog = (p) => {
       if (p.status === "progress" && p.total)
         cb.log?.(`模型下载 ${p.file} ${Math.round(p.progress || 0)}%`);
     };
-    let pipe = null;
-    if (navigator.gpu) {
-      try {
-        cb.log?.(`[浏览器] 加载 Whisper ${size}（WebGPU）…`);
-        pipe = await T.pipeline("automatic-speech-recognition", model,
-          { device: "webgpu", dtype: "fp32", progress_callback: prog });
-      } catch (e) { cb.log?.(`WebGPU 不可用(${String(e).slice(0, 80)})，回退 WASM…`); }
-    }
-    if (!pipe) {
-      cb.log?.(`[浏览器] 加载 Whisper ${size}（WASM，首次下载模型，走 hf-mirror）…`);
-      pipe = await T.pipeline("automatic-speech-recognition", model,
-        { device: "wasm", dtype: "q8", progress_callback: prog });
-    }
+    cb.log?.(`[浏览器] 加载 Whisper ${size}（WASM, 模型随站点加载）…`);
+    const pipe = await T.pipeline("automatic-speech-recognition", model,
+      { device: "wasm", dtype: "q8", progress_callback: prog });
     this._asr[size] = pipe;
     return pipe;
   },
@@ -661,6 +653,12 @@ async function init() {
   } else {
     $("engineBadge").textContent = "浏览器引擎 · 关机可用";
     $("engineBadge").className = "badge ok";
+    // 线上版只内置了 tiny 模型
+    for (const v of ["base", "small", "medium"]) {
+      const opt = $("sModel").querySelector(`option[value="${v}"]`);
+      if (opt) opt.remove();
+    }
+    $("sModel").value = "tiny";
     const note = $("engineNote");
     note.classList.remove("hidden");
     note.textContent = "线上版完全在浏览器内处理（数据不上传，电脑关机也能用）。限制：单个文件建议 ≤200MB；字幕烧录与 AI 超分仅桌面版支持；首次使用需加载 ffmpeg.wasm ≈30MB 与语音模型。大文件/全功能请用桌面版。";
