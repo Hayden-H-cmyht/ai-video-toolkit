@@ -128,12 +128,12 @@ const BrowserEngine = {
     ff.on("progress", ({ progress }) => {
       if (this._progressCb) this._progressCb(Math.max(0, Math.min(1, progress || 0)));
     });
-    const CORE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
-    const FFBASE = "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd";
+    // 官方 UMD worker 与 CDN 场景不兼容(跨域 Worker / module worker 无 importScripts),
+    // 用自带的同源 ESM worker(ffmpeg-worker.mjs, 由 @ffmpeg/ffmpeg 的 esm 打包) + ESM core
+    const CORE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
     const coreURL = await toBlobURL(`${CORE}/ffmpeg-core.js`, "text/javascript");
     const wasmURL = await toBlobURL(`${CORE}/ffmpeg-core.wasm`, "application/wasm");
-    // classWorkerURL 走 blob: 跨域源不能直接 new Worker(CDN 脚本)
-    const classWorkerURL = await toBlobURL(`${FFBASE}/814.ffmpeg.js`, "text/javascript");
+    const classWorkerURL = new URL("./ffmpeg-worker.mjs", location.href).href;
     await ff.load({ coreURL, wasmURL, classWorkerURL });
     this._ff = ff;
     cb.log?.("[浏览器] ffmpeg.wasm 就绪");
