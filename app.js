@@ -143,6 +143,8 @@ const BrowserEngine = {
   _dropFF() { try { this._ff?.terminate(); } catch (e) {} this._ff = null; },
   cancel() { this._cancelled = true; this._dropFF(); },
   cleanup() { this._cancelled = false; },
+  download(r) { downloadBlob(r.name, r.blob); },
+  openFolder() {},
 
   async run(feature, input, opts, cb) {
     if (feature === "subs") return this.subs(input, opts, cb);
