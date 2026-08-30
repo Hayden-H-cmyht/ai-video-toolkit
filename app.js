@@ -142,7 +142,7 @@ const BrowserEngine = {
 
   async _transformers() {
     if (!this._T) {
-      this._T = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3");
+      this._T = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.5");
     }
     return this._T;
   },
