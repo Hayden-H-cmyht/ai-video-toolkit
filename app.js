@@ -139,6 +139,15 @@ const BrowserEngine = {
 
   _dropFF() { try { this._ff?.terminate(); } catch (e) {} this._ff = null; },
   cancel() { this._cancelled = true; this._dropFF(); },
+  cleanup() { this._cancelled = false; },
+
+  async run(feature, input, opts, cb) {
+    if (feature === "subs") return this.subs(input, opts, cb);
+    if (feature === "convert") return this.convert(input, opts, cb);
+    if (feature === "highlight") return this.highlight(input, opts, cb);
+    if (feature === "upscale") return this.upscale(input, opts, cb);
+    throw new Error("未知功能: " + feature);
+  },
 
   async _transformers() {
     if (!this._T) {
